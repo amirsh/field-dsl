@@ -36,20 +36,9 @@ object FieldParser extends StandardTokenParsers {
     }
   }
 
-  lazy val expr: Parser[Expr] = term ~ rep(("+" | "-") ~ term) ^^ {
+  lazy val expr: Parser[Expr] = factor ~ rep(("+" | "-") ~ factor) ^^ {
     case t ~ ts => exprList(t, ts)
   }
-
-  lazy val term = factor ~ rep(("*" | "/") ~ factor) ^^ {
-    case t ~ ts => 
-      // yet another functional style, which is more concise than the one used in `exprList`.
-      ts.foldLeft(t) {
-        case (t1, "*" ~ t2) => Mul(t1, t2)
-        case (t1, "/" ~ t2) => Div(t1, t2)
-      }
-  } | (("let" ~> ident ~ ("=" ~> expr)) ~ ("in" ~> expr)) ^^ {
-    case x ~ e1 ~ e2 => LetBinding(x, e1, e2)
-  } | (ident ^^ { case x => Var(x) })
 
   lazy val factor = 
     "(" ~> expr <~ ")" | 
